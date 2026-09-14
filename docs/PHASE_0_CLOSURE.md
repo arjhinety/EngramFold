@@ -176,86 +176,6 @@ the tool's own fix rather than a per-file ignore), and the five missing test mod
 
 ---
 
-## E. Repository structure
-
-```
-EngramFold/
-├── README.md                  project identity and the STATUS: line the policy is coupled to
-├── ERRATA.md                  the correction log (empty: nothing has been corrected yet)
-├── LICENSE  pyproject.toml  .gitattributes  .gitignore
-├── .github/workflows/quality.yml            CI: runs engramfold-preflight (never executed)
-├── registry/                                the index of the canonical record
-│   ├── populations.yaml                     phase + per-population empty-authorisation
-│   ├── datasets.yaml models.yaml experiments.yaml artifacts.yaml reports.yaml claims.yaml
-│   └── schemas/                             JSON Schemas for outside readers
-├── datasets/
-│   ├── manifests/     one JSON document per dataset  (empty: none selected)
-│   └── freezes/       freeze documents pinning bytes (empty: nothing frozen)
-├── experiments/
-│   ├── manifests/     one JSON document per definition (empty: none designed)
-│   └── freezes/       definition freezes               (empty)
-├── artifacts/manifests/   artifact manifests           (empty: nothing produced)
-├── provenance/records/    recorded provenance documents (empty)
-├── reports/               the reporting surface         (empty)
-├── configs/ scripts/      hand-authored config; operational scripts
-├── docs/                  ARCHITECTURE, METHODOLOGY, PROVENANCE, REPRODUCIBILITY,
-│                          VALIDATION, ERRATA_POLICY, PHASE_0_CLOSURE, README
-├── src/engramfold/        the substrate: 29 modules (see A.1)
-└── tests/                 18 modules, 577 tests
-```
-
-Every canonical directory contains a `README.md` stating its ownership and purpose: git tracks
-files rather than directories, so that file is what makes the directory survive a clone. The
-`substrate` gate fails if one is missing, empty, or unnamed in `docs/ARCHITECTURE.md`; a test
-additionally fails if a top-level directory exists that `docs/ARCHITECTURE.md` does not name — the
-direction the gate does not check.
-
----
-
-## F. Remaining limitations
-
-Stated plainly, because a limitations section that omits the awkward ones is decoration.
-
-1. **No research state exists, by authorisation.** There is no dataset, model, experiment,
-   artifact, claim or report. Every corresponding population is empty, the emptiness is
-   authorised in writing in `registry/populations.yaml`, the authorisation is pinned to this
-   contract constant by a test, and it expires the moment the declared phase changes: `OPTIONAL`
-   while the phase is not pre-experiment is a validation failure.
-2. **The `synthetic` source type is schema-only.** The manifest schema and its validation exist;
-   no adapter produces a synthetic dataset, so the source type has never been exercised with real
-   bytes.
-3. **The JSON Schemas are secondary and now cross-checked, not authoritative.** They parse, and a
-   test asserts that a record satisfying the schema cannot be rejected by the validator for a
-   missing field and that the closed vocabularies match. The Python validators remain the
-   authority, and the schemas do not encode every rule (e.g. conditional immutability per source
-   type).
-4. **Continuous integration has never run.** `.github/workflows/quality.yml` installs the package
-   and runs `engramfold-preflight`; it will pass or fail for the first time on the first push. The
-   local gate is canonical, and CI is the same gate in a different place.
-5. **The health gate has been exercised on one platform.** Every recorded result is Windows with
-   Python 3.12.0 (pytest 9.1.1, ruff 0.16.1, mypy 1.20.2, git 2.52.0). The provenance mechanism
-   step requires `git` and fails loudly without it; nothing here has been run on Linux or macOS.
-6. **Hardware probes are exercised only in their skip path.** Environment capture records GPU,
-   driver, RAM and CPU when `probe_hardware=True`; the deterministic tests capture with
-   `probe_hardware=False`, so the probe *paths* are recorded rather than asserted. Two captures of
-   the same environment agree on identity either way.
-7. **One measured non-determinism, documented rather than hidden.** Regenerating a *definition*
-   freeze after writing it differs in exactly one field, `code_revision_at_freeze.untracked_file_list`,
-   because writing the freeze created an untracked file. The freeze id is unchanged, the recorded
-   file is untouched, and `tests/test_cli.py` pins the difference to that field. Dataset freezes
-   are byte-identical when `--created-at` is fixed.
-8. **`registry/schemas/populations.schema.json` is not validated by the populations loader.** It
-   parses and is cross-checked only in the sense above; the loader validates the document itself.
-9. **No remote and no push.** Every commit is local. Nothing in this record has been published,
-   and no external reader has yet read the schemas the repository ships for them.
-10. **Phase 0 covers infrastructure only.** `docs/METHODOLOGY.md` states the research design is NOT
-    YET FROZEN, and this record contains no research decision. The next phase — hypothesis,
-    literature, model family, the operational definition of an "expert function", baselines,
-    metrics, ablations, compression frontier — is explicitly out of scope here and must not be
-    read out of anything in this repository.
-
----
-
 ## D. Verification matrix
 
 Every row below is a command that was run and the output it produced, on the contents that this
@@ -373,6 +293,86 @@ observed outcomes, verbatim where it matters:
 
 Attacks 2, 4, 10, 11 and 12 also have dedicated tests elsewhere; they are repeated here because
 the review is meant to run as a set, and citing a test name is not evidence.
+
+---
+
+## E. Repository structure
+
+```
+EngramFold/
+├── README.md                  project identity and the STATUS: line the policy is coupled to
+├── ERRATA.md                  the correction log (empty: nothing has been corrected yet)
+├── LICENSE  pyproject.toml  .gitattributes  .gitignore
+├── .github/workflows/quality.yml            CI: runs engramfold-preflight (never executed)
+├── registry/                                the index of the canonical record
+│   ├── populations.yaml                     phase + per-population empty-authorisation
+│   ├── datasets.yaml models.yaml experiments.yaml artifacts.yaml reports.yaml claims.yaml
+│   └── schemas/                             JSON Schemas for outside readers
+├── datasets/
+│   ├── manifests/     one JSON document per dataset  (empty: none selected)
+│   └── freezes/       freeze documents pinning bytes (empty: nothing frozen)
+├── experiments/
+│   ├── manifests/     one JSON document per definition (empty: none designed)
+│   └── freezes/       definition freezes               (empty)
+├── artifacts/manifests/   artifact manifests           (empty: nothing produced)
+├── provenance/records/    recorded provenance documents (empty)
+├── reports/               the reporting surface         (empty)
+├── configs/ scripts/      hand-authored config; operational scripts
+├── docs/                  ARCHITECTURE, METHODOLOGY, PROVENANCE, REPRODUCIBILITY,
+│                          VALIDATION, ERRATA_POLICY, PHASE_0_CLOSURE, README
+├── src/engramfold/        the substrate: 29 modules (see A.1)
+└── tests/                 18 modules, 577 tests
+```
+
+Every canonical directory contains a `README.md` stating its ownership and purpose: git tracks
+files rather than directories, so that file is what makes the directory survive a clone. The
+`substrate` gate fails if one is missing, empty, or unnamed in `docs/ARCHITECTURE.md`; a test
+additionally fails if a top-level directory exists that `docs/ARCHITECTURE.md` does not name — the
+direction the gate does not check.
+
+---
+
+## F. Remaining limitations
+
+Stated plainly, because a limitations section that omits the awkward ones is decoration.
+
+1. **No research state exists, by authorisation.** There is no dataset, model, experiment,
+   artifact, claim or report. Every corresponding population is empty, the emptiness is
+   authorised in writing in `registry/populations.yaml`, the authorisation is pinned to this
+   contract constant by a test, and it expires the moment the declared phase changes: `OPTIONAL`
+   while the phase is not pre-experiment is a validation failure.
+2. **The `synthetic` source type is schema-only.** The manifest schema and its validation exist;
+   no adapter produces a synthetic dataset, so the source type has never been exercised with real
+   bytes.
+3. **The JSON Schemas are secondary and now cross-checked, not authoritative.** They parse, and a
+   test asserts that a record satisfying the schema cannot be rejected by the validator for a
+   missing field and that the closed vocabularies match. The Python validators remain the
+   authority, and the schemas do not encode every rule (e.g. conditional immutability per source
+   type).
+4. **Continuous integration has never run.** `.github/workflows/quality.yml` installs the package
+   and runs `engramfold-preflight`; it will pass or fail for the first time on the first push. The
+   local gate is canonical, and CI is the same gate in a different place.
+5. **The health gate has been exercised on one platform.** Every recorded result is Windows with
+   Python 3.12.0 (pytest 9.1.1, ruff 0.16.1, mypy 1.20.2, git 2.52.0). The provenance mechanism
+   step requires `git` and fails loudly without it; nothing here has been run on Linux or macOS.
+6. **Hardware probes are exercised only in their skip path.** Environment capture records GPU,
+   driver, RAM and CPU when `probe_hardware=True`; the deterministic tests capture with
+   `probe_hardware=False`, so the probe *paths* are recorded rather than asserted. Two captures of
+   the same environment agree on identity either way.
+7. **One measured non-determinism, documented rather than hidden.** Regenerating a *definition*
+   freeze after writing it differs in exactly one field, `code_revision_at_freeze.untracked_file_list`,
+   because writing the freeze created an untracked file. The freeze id is unchanged, the recorded
+   file is untouched, and `tests/test_cli.py` pins the difference to that field. Dataset freezes
+   are byte-identical when `--created-at` is fixed.
+8. **`registry/schemas/populations.schema.json` is not validated by the populations loader.** It
+   parses and is cross-checked only in the sense above; the loader validates the document itself.
+9. **No remote and no push.** Every commit is local. Nothing in this record has been published,
+   and no external reader has yet read the schemas the repository ships for them.
+10. **Phase 0 covers infrastructure only.** `docs/METHODOLOGY.md` states the research design is NOT
+    YET FROZEN, and this record contains no research decision. The next phase — hypothesis,
+    literature, model family, the operational definition of an "expert function", baselines,
+    metrics, ablations, compression frontier — is explicitly out of scope here and must not be
+    read out of anything in this repository.
 
 ---
 
