@@ -265,11 +265,12 @@ Two notes carried from the implementation, because they are what make the row re
 `engramfold-preflight --json` reports `expected_steps == ran_steps`, `missing_steps: []`,
 `total_executed: 758`, `overall: PASS`.
 
-The gate has been run three times: once while this record was being written, once after the commit
-that added it, and once at `4f334bd`, each on a clean checkout (`git status --porcelain` empty).
-All three agree on every count, including the 48 / 48 / 29 / 577 / 49 / 4 / 3 breakdown and the 758
-total. The only file that differs between the run quoted above and the latest is this record's own
-prose, which no step reads.
+During the closing work the gate was run locally five times and in CI three times: while this
+record was being written, after the commits that added it, and at each subsequent documentation
+commit. Every run agrees on all counts — the 48 / 48 / 29 / 577 / 49 / 4 / 3 breakdown and the 758
+total — with exactly one exception, the first CI run, which could not complete the type step and is
+quoted in D.7. Local and CI runs at the same commit (`5552f7b`) produce identical output, so the
+counts below are a property of the repository rather than of the machine that ran the gate.
 
 ### D.5 Entry points
 
