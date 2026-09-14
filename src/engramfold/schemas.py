@@ -32,6 +32,13 @@ SUPPORTED_SCHEMA_VERSIONS: dict[str, tuple[int, ...]] = {
     "registry": (1,),
     "populations": (1,),
     "gate_contract": (1,),
+    # Digest payload formats. These are not documents a loader reads, but they are JSON this
+    # repository writes and records, so they carry a version for the same reason the
+    # document kinds do: a digest must be traceable to the rules that produced it. They were
+    # missing until ``tests/test_anti_patterns.py`` mechanically asserted that every
+    # ``*_version`` key written anywhere in the package is a key this module knows about --
+    # a rule stated in this docstring that was, at the time, not quite true.
+    "directory_digest": (1,),
 }
 
 # The key each kind records its version under. Stated once so a reader cannot pick a
@@ -47,6 +54,7 @@ VERSION_FIELD: dict[str, str] = {
     "registry": "schema_version",
     "populations": "schema_version",
     "gate_contract": "schema_version",
+    "directory_digest": "directory_hash_version",
 }
 
 

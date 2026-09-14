@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engramfold.invalid/schemas/registry.schema.json",
+  "title": "EngramFold registry index",
+  "description": "Shape of a registry index file. The authoritative validation is engramfold.registry.validate; this schema exists so that readers outside this codebase can check the shape without importing Python. Where the two disagree, the Python validator wins.",
+  "type": "object",
+  "required": ["schema_version"],
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "Version of this document format, not of the records it indexes."
+    },
+    "datasets": { "type": "array", "items": { "$ref": "#/$defs/dataset" } },
+    "models": { "type": "array", "items": { "$ref": "#/$defs/model" } },
+    "experiments": { "type": "array", "items": { "$ref": "#/$defs/experiment" } },
+    "artifacts": { "type": "array", "items": { "$ref": "#/$defs/artifact" } },
+    "reports": { "type": "array", "items": { "$ref": "#/$defs/report" } },
+    "claims": { "type": "array", "items": { "$ref": "#/$defs/claim" } }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "description": "Stable canonical id. References between documents use this, never a filename."
+    },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "dataset": {
+      "type": "object",
+      "required": ["id", "manifest_path"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "manifest_path": { "type": "string" },
+        "freeze_ids": { "type": "array", "items": { "$ref": "#/$defs/sha256" } }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["id", "license"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "license": { "type": "string" },
+        "model_revision": { "type": "string" },
+        "source_url": { "type": "string" }
+      }
+    },
+    "experiment": {
+      "type": "object",
+      "required": ["id", "manifest_path"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "manifest_path": { "type": "string" },
+        "dataset_ids": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "artifact_ids": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "dataset_freezes": { "type": "array", "items": { "$ref": "#/$defs/sha256" } }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["id", "manifest_path"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "manifest_path": { "type": "string" },
+        "experiment_id": { "$ref": "#/$defs/identifier" },
+        "dataset_freezes": { "type": "array", "items": { "$ref": "#/$defs/sha256" } }
+      }
+    },
+    "report": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "artifact_ids": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+        "experiment_ids": { "type": "array", "items": { "$ref": "#/$defs/identifier" } }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "required": ["id", "statement", "status", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "statement": { "type": "string" },
+        "status": { "enum": ["UNSUPPORTED", "SUPPORTED", "WITHDRAWN", "CORRECTED"] },
+        "evidence": {
+          "type": "array",
+          "description": "Machine-readable evidence only. Prose is not an evidence kind, so a claim cannot satisfy the requirement by pointing at a sentence.",
+          "items": {
+            "type": "object",
+            "required": ["kind", "ref"],
+            "properties": {
+              "kind": { "enum": ["artifact", "experiment", "dataset_freeze", "metric_file", "report"] },
+              "ref": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# Canonical artifact registry.
+#
+# Each record indexes an artifact manifest under artifacts/manifests/. Artifacts are
+# identified by a stable id and a content digest; filenames are never identities.
+#
+# Empty on purpose: nothing has been produced. See registry/populations.yaml.
+schema_version: 1
+artifacts: []

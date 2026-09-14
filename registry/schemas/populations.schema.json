@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engramfold.invalid/schemas/populations.schema.json",
+  "title": "EngramFold population policy",
+  "description": "Declares the repository phase and, per population, whether an empty population is legitimate. The authoritative validation is engramfold.registry.store.load_populations; this schema exists for readers outside this codebase.",
+  "type": "object",
+  "required": ["schema_version", "phase", "populations"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "phase": {
+      "type": "string",
+      "description": "Must equal engramfold.STATUS and the STATUS line in README.md."
+    },
+    "populations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["policy"],
+        "properties": {
+          "policy": { "enum": ["REQUIRED_NONEMPTY", "CONDITIONALLY_REQUIRED", "OPTIONAL"] },
+          "zero_allowed_reason": {
+            "type": "string",
+            "description": "Required when policy is OPTIONAL, forbidden otherwise. A population authorised to be empty must state why."
+          }
+        }
+      }
+    }
+  }
+}

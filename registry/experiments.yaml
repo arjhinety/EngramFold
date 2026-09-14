@@ -1,0 +1,9 @@
+# Canonical experiment registry.
+#
+# Each record indexes an experiment manifest under experiments/manifests/ and names the
+# dataset freezes and artifacts it relates to. Validation resolves those references and
+# checks each manifest against its frozen definition.
+#
+# Empty on purpose: Study 001 has not been designed. See registry/populations.yaml.
+schema_version: 1
+experiments: []

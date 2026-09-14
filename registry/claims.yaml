@@ -1,0 +1,27 @@
+# Canonical claims registry.
+#
+# This is the claim/evidence discipline, in executable form.
+#
+# The repository's rule is:
+#
+#   Generated prose is not evidence. Canonical machine-readable artifacts are evidence.
+#
+# So a claim asserting that something *holds* must cite evidence that is itself an
+# artifact, an experiment, a dataset freeze, a metrics file or a report, and the reference
+# must resolve. Validation enforces both.
+#
+# Statuses:
+#   UNSUPPORTED  recorded, not established. Legitimate, and may cite no evidence.
+#   SUPPORTED    asserted. Must cite at least one resolvable, machine-readable reference.
+#   WITHDRAWN    previously asserted, now retracted. Kept in the record, never deleted.
+#   CORRECTED    superseded by an erratum; the correction is named in evidence.
+#
+# Empty on purpose. EngramFold has no findings. Nothing here may claim that Engram-style
+# compensation works, that experts can be reduced to a particular number, that behaviour
+# can be preserved, or that any method outperforms prior work -- those are the research
+# questions this repository exists to ask, not results it has.
+#
+# See registry/populations.yaml for the authorisation, and docs/METHODOLOGY.md for the
+# conventions that govern how a claim may be added.
+schema_version: 1
+claims: []

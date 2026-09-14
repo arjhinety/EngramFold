@@ -1,0 +1,11 @@
+# Canonical dataset registry.
+#
+# Every record here indexes a manifest under datasets/manifests/ and names the freezes that
+# pin its bytes. References are resolved by validation: a record pointing at a manifest, a
+# freeze or a record that does not exist is an error, not a skip.
+#
+# Empty on purpose. No dataset has been selected or frozen; see registry/populations.yaml
+# for the written authorisation and registry/datasets.yaml's sibling files for the rest of
+# the index.
+schema_version: 1
+datasets: []

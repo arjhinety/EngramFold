@@ -1,0 +1,9 @@
+# Canonical model registry.
+#
+# A record pins a model family to an immutable revision. Picking the first target
+# Mixture-of-Experts family is explicitly out of scope for Phase 0 -- it is a research
+# decision, and it is deferred until the substrate can be trusted.
+#
+# Empty on purpose; see registry/populations.yaml.
+schema_version: 1
+models: []

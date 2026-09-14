@@ -1,0 +1,8 @@
+# Canonical report registry.
+#
+# A report interprets artifacts. Each record names the artifacts and experiments it rests
+# on, so that a report whose evidence has moved is detectable rather than merely wrong.
+#
+# Empty on purpose: there is nothing to interpret yet. See registry/populations.yaml.
+schema_version: 1
+reports: []

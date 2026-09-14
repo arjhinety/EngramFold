@@ -1,0 +1,80 @@
+# Population policy: what this repository is allowed to be empty, and why.
+#
+# This file is not documentation. Validation reads it, and two rules keep it honest:
+#
+#   1. declaring a population OPTIONAL while it actually contains records is an error, so
+#      OPTIONAL can never be used to authorise a validation run over a populated registry;
+#   2. OPTIONAL is only legal while `phase` matches engramfold.STATUS, and that same
+#      phase string must appear as the STATUS line in README.md.
+#
+# Together those mean the policy cannot be quietly relaxed: relaxing it requires changing
+# what the repository publicly says it is.
+#
+# When EngramFold leaves the pre-experiment phase, every OPTIONAL below must become
+# REQUIRED_NONEMPTY in the same change that updates README.md, and validation will fail
+# until it does.
+schema_version: 1
+phase: "PRE-EXPERIMENT / INFRASTRUCTURE ONLY"
+
+populations:
+  # ── Registry populations ────────────────────────────────────────────────────
+  datasets:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      Phase 0 is infrastructure only. No dataset has been selected, downloaded, adapted or
+      frozen, so there is no dataset to describe. The dataset gate still executes its
+      structural checks -- that datasets/manifests/ exists, that no manifest failed to
+      parse, that no registry record indexes a missing manifest, and that this policy is
+      self-consistent -- so discovering zero targets is an authorised outcome here rather
+      than an unexamined one.
+
+  dataset_freezes:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      No dataset freeze exists, because no dataset exists to freeze. This population governs
+      the `freezes` gate, which is named separately from this population on purpose: a gate
+      is a question and a population is a set of things, and keeping the two vocabularies
+      apart is what stops a gate inheriting the wrong policy. The freeze gate still executes
+      its structural checks -- that datasets/freezes/ exists, that no freeze document failed
+      to parse, that no two files claim the same freeze_id, that every freeze is referenced
+      by a registry record, and that every freeze's manifest still resolves.
+
+  models:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      The pretrained Mixture-of-Experts family has not been chosen. Choosing one is a
+      research decision reserved for the phase after this substrate is trusted, so no model
+      may be registered yet.
+
+  experiments:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      No experiment definition exists, because EngramFold has deliberately not designed
+      Study 001 yet. The experiment gate still validates the manifest schema, reference
+      resolution and the definition-drift mechanism.
+
+  artifacts:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      No canonical artifact has been produced, because nothing has been run. The artifact
+      gate still validates the manifest schema and the byte-verification path.
+
+  reports:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      There are no reports to index: a report would have to interpret artifacts, and there
+      are no artifacts.
+
+  claims:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      No canonical claim is asserted. This is the intended state for a repository whose
+      status is pre-experiment: it is investigating something, and has established nothing.
+
+  # ── Populated-by-construction populations ───────────────────────────────────
+  provenance_records:
+    policy: OPTIONAL
+    zero_allowed_reason: >-
+      No artifact has been produced, so no provenance record is required. The provenance
+      gate still captures and validates the current checkout's git provenance on every run,
+      which is why it is never vacuous even with zero recorded provenance records.
