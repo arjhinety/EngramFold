@@ -26,8 +26,7 @@ wrong" from "the check did not run". That distinction is the entire subject of t
 | `test_non_vacuity.py` | The reproducibility cases: zero manifests, zero freezes, renamed fields, broken lookups, malformed documents, unknown versions, all-skipped |
 | `test_dataset_manifest.py` | Schema, immutability requirements, and the adversarial cases for each source type |
 | `test_dataset_freeze.py` | The mutation matrix: change one thing at a time and prove the freeze fails |
-| `test_experiment_manifest.py` | Schema, status obligations, configuration-hash drift |
-| `test_experiment_freeze.py` | Definition drift, field by field |
+| `test_experiments.py` | Experiment manifests and definition freezes: schema, status obligations, configuration-hash drift, and definition drift field by field |
 | `test_artifacts.py` | Manifest schema and byte verification, including unverifiable storage |
 | `test_registry.py` | Reference resolution, duplicate ids, dangling references, population/phase coupling |
 | `test_provenance_git.py` | Clean → modified → restored, real `git` subprocesses |
@@ -36,7 +35,8 @@ wrong" from "the check did not run". That distinction is the entire subject of t
 | `test_cli.py` | Command behaviour, exit codes, dry-run and JSON output |
 | `test_preflight.py` | The health gate's steps, including its live mechanism self-tests |
 | `test_determinism.py` | Run twice, compare byte-for-byte |
-| `test_anti_patterns.py` | Source scanning: no swallowed exceptions, one hashing implementation, generated markers |
+| `test_anti_patterns.py` | Source scanning: no swallowed exceptions, one hashing implementation, generated markers, registered version keys, documented directories and test modules |
+| `test_adversarial_review.py` | The twelve attacks from the specification, executed against the real gates and recorded |
 
 ## Running
 
