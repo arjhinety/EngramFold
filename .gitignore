@@ -1,0 +1,49 @@
+# ─ Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# ── Tooling caches ───────────────────────────────────────────────────────────
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ── Local scratch ────────────────────────────────────────────────────────────
+# Anything a developer wants to keep out of the research record goes here, so it
+# is never confused with canonical state.
+.cache/
+.scratch/
+*.local.json
+
+# ── Large research payloads ──────────────────────────────────────────────────
+# Model weights and raw corpora are never canonical repository state. What is
+# canonical is the manifest and the freeze that pins their bytes by digest. If a
+# payload is deleted, the freeze still records what it was, and verification
+# reports the artifact as missing rather than quietly passing.
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.parquet
+*.arrow
+*.h5
+*.onnx
+*.tar
+*.tar.gz
+*.zip
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+# Environment capture redacts secret-shaped variables (see docs/PROVENANCE.md),
+# but a stray .env must never be committed in the first place.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json

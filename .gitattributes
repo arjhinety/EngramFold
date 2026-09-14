@@ -1,0 +1,19 @@
+# Canonical research state is line-ending sensitive. A digest computed over CRLF
+# bytes on Windows and over LF bytes on Linux is a digest of the operating system,
+# not of the artifact. Forcing LF on every text format this repository hashes makes
+# a committed digest reproducible on any clone.
+#
+# See docs/PROVENANCE.md ("Why committed bytes, not working-tree bytes").
+* text=auto eol=lf
+
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.py   text eol=lf
+
+# Binary research artifacts must never be normalised.
+*.parquet binary
+*.gguf    binary
+*.safetensors binary
+*.bin     binary
