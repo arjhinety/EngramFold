@@ -222,8 +222,14 @@ overall: PASS
 
 Four gates discovered zero targets and still executed 2–5 assertions each. That is the
 non-vacuity property being visible rather than asserted: an authorised-empty population is not an
-unexamined one. The single warning is the provenance gate reporting a dirty checkout
-(`0eba029858fe`, 1 modified tracked file), which is recorded and does not make the run a failure.
+unexamined one.
+
+The single warning is the provenance gate recording the checkout it observed, and it is present in
+both states. On the committed tree it reads `warning: checkout is clean at 74b130996b23 on branch
+'master'` with `dirty_files: 0` and `git_dirty: 0`. While this record was being written it read
+`the checkout is dirty at 0eba029858fe with 1 modified tracked file(s); acceptable while
+developing, but not for producing a canonical artifact`. A dirty checkout is reported, never
+hidden, and never turned into a failure in either case.
 
 `python -m engramfold.registry.validate --json` additionally shows `expected_gates`,
 `ran_gates`, `missing_gates: []`, `unexpected_gates: []`, `contract_errors: []` and
@@ -257,6 +263,11 @@ Two notes carried from the implementation, because they are what make the row re
 
 `engramfold-preflight --json` reports `expected_steps == ran_steps`, `missing_steps: []`,
 `total_executed: 758`, `overall: PASS`.
+
+The gate was run twice: once while this record was being written, and once again after the final
+commit, on a clean checkout (`git status --porcelain` empty at `74b1309`). The two runs agree on
+every count, including the 48 / 48 / 29 / 577 / 49 / 4 / 3 breakdown and the 758 total. The second
+run is the one that describes the committed state.
 
 ### D.5 Entry points
 
