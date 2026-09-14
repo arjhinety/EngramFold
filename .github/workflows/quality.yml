@@ -1,0 +1,33 @@
+name: quality
+
+# CI runs the same gate a developer runs locally: `engramfold-preflight`. There is one
+# definition of repository health, and this workflow invokes it rather than restating it.
+# A CI job that reimplements the checks would eventually disagree with the local gate, and
+# the disagreement would be resolved by whichever was cheaper to change.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Provenance checks read the commit history, which a depth-1 clone cannot answer.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,yaml]"
+      - name: Preflight
+        # Exits non-zero if any step fails, if any step executed nothing, or if any
+        # validation gate failed or was blocked.
+        run: engramfold-preflight
+      - name: Validation report
+        if: always()
+        run: python -m engramfold.registry.validate --json

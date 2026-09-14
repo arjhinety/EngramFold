@@ -13,6 +13,7 @@
 | [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) | What determinism means, the identity kinds, and what is excluded from identity. |
 | [`VALIDATION.md`](VALIDATION.md) | The eight gates, the census, the non-vacuity rules, entry-point parity. |
 | [`ERRATA_POLICY.md`](ERRATA_POLICY.md) | How a mistake is corrected without rewriting frozen history. |
+| [`PHASE_0_CLOSURE.md`](PHASE_0_CLOSURE.md) | The Phase 0 closure record: what was built, what was verified, what verification found, and what remains unsolved. A substrate record, not a research report. |
 
 ## The rule about documentation
 
