@@ -271,8 +271,85 @@ def normalize_source_files(value: Any) -> list[str]:
     return sorted({str(item) for item in value})
 
 
+#: The fields a git provenance record carries when embedded in a manifest.
+CODE_REVISION_FIELDS: tuple[str, ...] = (
+    "provenance_record_version",
+    "git_commit",
+    "git_branch",
+    "git_dirty",
+)
+
+
+def validate_code_revision(
+    value: Any,
+    *,
+    origin: str,
+    label: str = "code_revision",
+    dirty_must_be_known: bool = True,
+) -> list[str]:
+    """Validate a git provenance record embedded in a manifest.
+
+    Shared by the experiment and artifact manifests so the two cannot drift apart, and so the
+    tri-state of ``git_dirty`` is decided once.
+
+    ``git_dirty`` is deliberately validated apart from the other fields rather than through
+    :func:`require_fields`. That helper treats ``null`` as "empty", but here ``null`` is a
+    meaningful value -- it means *unknowable* -- and rejecting it as blank conflates two
+    different things. What matters is that it is never *acceptable*: an artifact or an
+    experiment that cannot say whether its code was clean is not attributable, so
+    ``dirty_must_be_known`` turns an unknowable state into an error while still allowing the
+    value to be represented.
+    """
+    if not isinstance(value, dict):
+        return [
+            f"{origin}: {label} must be a provenance record mapping, found "
+            f"{type(value).__name__}; a bare commit cannot distinguish clean from dirty"
+        ]
+
+    errors: list[str] = []
+    errors.extend(
+        require_fields(
+            value,
+            ("provenance_record_version", "git_commit", "git_branch"),
+            origin=f"{origin}: {label}",
+        )
+    )
+
+    if "git_dirty" not in value:
+        errors.append(
+            f"{origin}: {label} does not record git_dirty; a provenance record that omits the "
+            f"dirty state cannot distinguish a clean checkout from one with uncommitted edits"
+        )
+    else:
+        dirty = value["git_dirty"]
+        if dirty is None:
+            if dirty_must_be_known:
+                errors.append(
+                    f"{origin}: {label}.git_dirty is null, meaning provenance was unknowable; an "
+                    f"artifact or experiment that cannot be attributed to a checkout state is not "
+                    f"evidence"
+                )
+        elif not isinstance(dirty, bool):
+            errors.append(f"{origin}: {label}.git_dirty must be a boolean or null, found {dirty!r}")
+        elif dirty and not str(value.get("dirty_override_reason") or "").strip():
+            errors.append(
+                f"{origin}: {label} records a dirty tree with no dirty_override_reason; if "
+                f"uncommitted code is acceptable here, the override must be written down rather "
+                f"than left implicit"
+            )
+
+    commit = value.get("git_commit")
+    if commit is not None and not (is_full_revision(commit) or commit == "unknown"):
+        errors.append(
+            f"{origin}: {label}.git_commit={commit!r} is neither a full 40-character commit nor "
+            f"the explicit 'unknown' marker"
+        )
+    return errors
+
+
 __all__ = [
     "BRANCH_LIKE_RE",
+    "CODE_REVISION_FIELDS",
     "FULL_REVISION_RE",
     "IDENTIFIER_RE",
     "SHA256_RE",
@@ -289,6 +366,7 @@ __all__ = [
     "require_immutable_revision",
     "require_int",
     "require_nonempty_str",
+    "validate_code_revision",
     "validate_hash_map",
     "validate_path_list",
     "validate_relative_posix_path",

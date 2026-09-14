@@ -57,6 +57,7 @@ from engramfold.validation.fields import (
     require_fields,
     require_int,
     require_nonempty_str,
+    validate_code_revision,
     validate_relative_posix_path,
 )
 
@@ -191,28 +192,12 @@ def _validate_storage(manifest: Mapping[str, Any], *, origin: str) -> list[str]:
 def _validate_code_revision(manifest: Mapping[str, Any], *, origin: str) -> list[str]:
     """The code revision must be a full provenance record, not a bare commit.
 
-    A bare commit cannot distinguish a clean checkout from one with uncommitted edits, so
-    it cannot establish what code produced the artifact. A dirty tree here must carry its
-    override reason, so the fact is visible in the manifest itself.
+    A bare commit cannot distinguish a clean checkout from one with uncommitted edits, so it
+    cannot establish what code produced the artifact. The semantics -- including the tri-state
+    of ``git_dirty`` -- come from the shared validator, so this manifest and the experiment
+    manifest cannot disagree about what a dirty tree means.
     """
-    errors: list[str] = []
-    code_revision = manifest.get("code_revision")
-    if not isinstance(code_revision, dict):
-        errors.append(
-            f"{origin}: code_revision must be a provenance record mapping, found "
-            f"{type(code_revision).__name__}"
-        )
-        return errors
-    errors.extend(
-        require_fields(code_revision, CODE_REVISION_FIELDS, origin=f"{origin}: code_revision")
-    )
-    dirty = code_revision.get("git_dirty")
-    if dirty is True and not code_revision.get("dirty_override_reason"):
-        errors.append(
-            f"{origin}: code_revision records a dirty tree with no dirty_override_reason; an "
-            f"artifact produced from uncommitted code must say so explicitly"
-        )
-    return errors
+    return validate_code_revision(manifest.get("code_revision"), origin=origin)
 
 
 def _validate_inputs(manifest: Mapping[str, Any], *, origin: str) -> list[str]:

@@ -327,12 +327,23 @@ class DirectoryDigest:
 def _is_excluded(relative: str, name: str, patterns: Sequence[str]) -> bool:
     """Whether a path is covered by an exclusion pattern.
 
-    Matched against both the full relative path and the basename, so ``.git`` excludes
-    the directory and ``*.pyc`` excludes files at any depth.
+    A pattern is matched against the full relative path, the basename, and **every path
+    component**. The component check is the one that matters and was missing at first: a
+    directory pattern like ``.git`` does not match the string ``.git/config``, so matching only
+    on the full path and the basename silently included every file *inside* an excluded
+    directory. That would have put ``.git/objects/...`` into a directory digest -- a digest of
+    the object store rather than of the content.
+
+    Matching a component also means ``*.pyc`` excludes a cache file at any depth, which is the
+    other half of the intent.
     """
-    return any(
-        fnmatch.fnmatch(relative, pattern) or fnmatch.fnmatch(name, pattern) for pattern in patterns
-    )
+    components = relative.split("/")
+    for pattern in patterns:
+        if fnmatch.fnmatch(relative, pattern) or fnmatch.fnmatch(name, pattern):
+            return True
+        if any(fnmatch.fnmatch(component, pattern) for component in components):
+            return True
+    return False
 
 
 def _walk(root: Path, patterns: Sequence[str]) -> tuple[list[TreeEntry], list[str]]:

@@ -103,9 +103,12 @@ REDACTED = "<redacted>"
 
 # A URL carrying inline credentials, e.g. https://user:token@host/path.
 _CREDENTIAL_URL_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/\s:@]+:[^/\s@]+@")
-# A long opaque token. Deliberately conservative: 32+ characters drawn only from a
-# token alphabet, so ordinary paths, versions and numbers are untouched.
-_OPAQUE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_\-+/=]{32,}$")
+# A long opaque token. The alphabet includes ``.`` so that JWT-shaped credentials -- three
+# base64url segments joined by dots -- are caught; without it the most common structured token
+# format would pass straight through. The cost is that a long dotted identifier (a module path,
+# say) is also withheld. That is the right direction to err: withholding a harmless diagnostic
+# loses one detail, while recording a live credential cannot be undone.
+_OPAQUE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_\-+/=.]{32,}$")
 
 
 def is_secret_shaped_name(name: str) -> bool:
@@ -126,9 +129,8 @@ def looks_like_secret_value(value: str) -> bool:
         return False
     if _CREDENTIAL_URL_RE.match(stripped):
         return True
-    # A long opaque string is withheld. Underscores and dashes are allowed so that
-    # base64url and JWT-shaped values are caught; a filesystem path or a version range
-    # contains characters (``:``, ``.``, ``\``, spaces) that this will not match.
+    # A long opaque string is withheld. An absolute path is exempt: it is a legitimate
+    # diagnostic value rather than a token, and the leading slash distinguishes the two.
     return bool(_OPAQUE_TOKEN_RE.match(stripped)) and not stripped.startswith("/")
 
 
@@ -456,8 +458,12 @@ class EnvironmentManifest:
 
     @property
     def manifest_hash(self) -> str:
-        """Identity of the environment, with volatile and host-specific fields removed."""
-        return manifest_hash(self.manifest)
+        """Identity of the environment, with volatile and host-specific fields removed.
+
+        Computed over :meth:`identity_payload`, which includes the manifest format version but
+        excludes ``captured_at``, ``hostname`` and ``hostname_class``.
+        """
+        return manifest_hash(self.identity_payload())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -468,6 +474,16 @@ class EnvironmentManifest:
             "environment_manifest_hash": self.manifest_hash,
             **self.manifest,
         }
+
+    def identity_payload(self) -> dict[str, Any]:
+        """Exactly what ``manifest_hash`` is computed over.
+
+        Exposed so a reader -- and the tests -- can see which fields participate in the
+        environment's identity rather than having to infer it from the digest. The format
+        version is inside it, because a different capture format is a different description of
+        the environment.
+        """
+        return {"environment_manifest_version": ENVIRONMENT_MANIFEST_VERSION, **self.manifest}
 
 
 def capture_environment(

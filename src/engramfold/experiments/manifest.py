@@ -55,6 +55,7 @@ from engramfold.validation.fields import (
     require_fields,
     require_int,
     require_nonempty_str,
+    validate_code_revision,
     validate_path_list,
 )
 
@@ -299,12 +300,10 @@ def _validate_attribution(manifest: Mapping[str, Any], *, origin: str, status: s
     errors.extend(require_fields(manifest, ATTRIBUTION_FIELDS, origin=origin))
 
     code_revision = manifest.get("code_revision")
-    if not isinstance(code_revision, dict):
-        errors.append(
-            f"{origin}: code_revision must be a provenance record mapping, found "
-            f"{type(code_revision).__name__}; a bare commit cannot distinguish clean from dirty"
-        )
-    else:
+    if isinstance(code_revision, dict):
+        # Only the *shape* of the record is checked here; the record's own semantics -- including
+        # the tri-state of git_dirty -- are decided once, in the shared validator, so this
+        # manifest and the artifact manifest cannot drift apart on what a dirty tree means.
         errors.extend(
             reject_unknown_fields(
                 code_revision,
@@ -327,29 +326,7 @@ def _validate_attribution(manifest: Mapping[str, Any], *, origin: str, status: s
                 origin=f"{origin}: code_revision",
             )
         )
-        errors.extend(
-            require_fields(code_revision, CODE_REVISION_FIELDS, origin=f"{origin}: code_revision")
-        )
-        dirty = code_revision.get("git_dirty")
-        if dirty is not None and not isinstance(dirty, bool):
-            errors.append(
-                f"{origin}: code_revision.git_dirty must be a boolean or null (null means it "
-                f"could not be determined), found {dirty!r}"
-            )
-        # A dirty override must be recorded here too, so a reader of the manifest -- not
-        # only a reader of the run logs -- can see that the code was not committed.
-        if dirty is True and not code_revision.get("dirty_override_reason"):
-            errors.append(
-                f"{origin}: code_revision records a dirty tree with no dirty_override_reason; if "
-                f"dirty code is acceptable for this experiment, the override must be written down "
-                f"rather than left implicit"
-            )
-        commit = code_revision.get("git_commit")
-        if commit is not None and not (is_full_revision(commit) or commit == "unknown"):
-            errors.append(
-                f"{origin}: code_revision.git_commit={commit!r} is neither a full commit hash nor "
-                f"the explicit 'unknown' marker"
-            )
+    errors.extend(validate_code_revision(code_revision, origin=origin))
 
     environment = manifest.get("environment_manifest")
     if not isinstance(environment, dict) or not environment:
