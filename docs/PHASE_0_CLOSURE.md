@@ -264,10 +264,11 @@ Two notes carried from the implementation, because they are what make the row re
 `engramfold-preflight --json` reports `expected_steps == ran_steps`, `missing_steps: []`,
 `total_executed: 758`, `overall: PASS`.
 
-The gate was run twice: once while this record was being written, and once again after the final
-commit, on a clean checkout (`git status --porcelain` empty at `74b1309`). The two runs agree on
-every count, including the 48 / 48 / 29 / 577 / 49 / 4 / 3 breakdown and the 758 total. The second
-run is the one that describes the committed state.
+The gate has been run three times: once while this record was being written, once after the commit
+that added it, and once at `4f334bd`, each on a clean checkout (`git status --porcelain` empty).
+All three agree on every count, including the 48 / 48 / 29 / 577 / 49 / 4 / 3 breakdown and the 758
+total. The only file that differs between the run quoted above and the latest is this record's own
+prose, which no step reads.
 
 ### D.5 Entry points
 
