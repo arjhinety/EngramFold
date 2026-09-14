@@ -79,6 +79,7 @@ evaluate something is not a gate that passed.
 | [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md) | What determinism means here, and what is deliberately excluded from identity. |
 | [`docs/VALIDATION.md`](docs/VALIDATION.md) | The eight gates, the census, and the non-vacuity rules. |
 | [`docs/ERRATA_POLICY.md`](docs/ERRATA_POLICY.md) | How a mistake is corrected without rewriting frozen history. |
+| [`docs/PHASE_0_CLOSURE.md`](docs/PHASE_0_CLOSURE.md) | The Phase 0 closure record: what was built, what was verified, what verification found, and the closure decision. |
 | [`ERRATA.md`](ERRATA.md) | The errata ledger. Empty, because nothing has been frozen. |
 
 ## Repository layout

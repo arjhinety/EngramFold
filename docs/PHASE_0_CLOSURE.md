@@ -170,6 +170,7 @@ meaningful if what the checks found is recorded too.
 | 20 | Comparing the docs to the code while writing the review | `docs/VALIDATION.md` named a counter `chosen` that does not exist, and stated that "every target skipped" fails, which is true only for a required population | Both corrected: the rule is now stated as it is implemented and tested |
 | 21 | Same | `docs/REPRODUCIBILITY.md` overstated freeze byte-identity | Corrected, with the measured qualification written down rather than glossed |
 | 22 | Writing `test_anti_patterns.py` | `tests/README.md` named two modules that never existed (`test_experiment_manifest.py`, `test_experiment_freeze.py`), and five required modules were absent | The README is reconciled, and a test now fails if a named module is missing or an existing module is unnamed |
+| 23 | Publishing the repository, which made CI run | `mypy --strict` passed on the development machine and failed in CI on `ubuntu-latest`: `Library stubs not installed for "yaml" [import-untyped]`. The `dev` extra declared `pyyaml` but not `types-PyYAML`, so the guarantee "mypy strict clean" depended on an undeclared fact about one machine | The stub package is declared in the `dev` extra; CI then passed every step with the same counts as the local run. The first defect in this repository that no local run could have shown |
 
 Also closed in this session: the twelve `RUF059` findings that kept `ruff check` red (fixed with
 the tool's own fix rather than a per-file ignore), and the five missing test modules.
@@ -306,6 +307,47 @@ observed outcomes, verbatim where it matters:
 Attacks 2, 4, 10, 11 and 12 also have dedicated tests elsewhere; they are repeated here because
 the review is meant to run as a set, and citing a test name is not evidence.
 
+### D.7 The same gate in a different place
+
+The repository is published at <https://github.com/arjhinety/EngramFold> (public). Pushing it made
+`.github/workflows/quality.yml` execute for the first time, which produced two facts that no local
+run could:
+
+The **first** CI run failed, on one step:
+
+```
+  [PASS   ] format  executed=48     [PASS   ] lint          executed=48
+  [FAIL   ] types   executed=0      type errors found
+            src/engramfold/documents.py:130: error: Library stubs not installed for "yaml" [import-untyped]
+  [PASS   ] tests   executed=577    [PASS   ] validation    executed=49   8 gate(s), 49 check(s)
+  [PASS   ] freeze-mechanism  executed=4      [PASS   ] provenance-mechanism  executed=3
+total executed: 729
+overall: FAIL
+```
+
+The **second** run, after the undeclared stub dependency was declared (C.2, defect 23), passed
+every step on `ubuntu-latest` (Python 3.12.14):
+
+```
+engramfold preflight  root=/home/runner/work/EngramFold/EngramFold  status=PRE-EXPERIMENT / INFRASTRUCTURE ONLY
+  [PASS   ] format                 executed=48    48 file(s) already formatted
+  [PASS   ] lint                   executed=48    48 file(s) clean
+  [PASS   ] types                  executed=29    29 source file(s) type-checked
+  [PASS   ] tests                  executed=577   577 test(s) collected and passing
+  [PASS   ] validation             executed=49    8 gate(s), 49 check(s) executed
+  [PASS   ] freeze-mechanism       executed=4     4 assertion(s) over a live fixture
+  [PASS   ] provenance-mechanism   executed=3     3 assertion(s): clean, modified, restored
+
+total executed: 758
+overall: PASS
+```
+
+The Linux run reproduces the Windows run count for count — 48 / 48 / 29 / 577 / 49 / 4 / 3, total
+758 — which is the first evidence that this gate describes the repository rather than the machine
+it happens to be standing on. The 729 in the failing run is the same suite with the type step
+unable to report: `executed=0` there is the non-vacuity rule refusing to count a check that did not
+run, so the total fell rather than the verdict passing quietly.
+
 ---
 
 ## E. Repository structure
@@ -315,7 +357,7 @@ EngramFold/
 ├── README.md                  project identity and the STATUS: line the policy is coupled to
 ├── ERRATA.md                  the correction log (empty: nothing has been corrected yet)
 ├── LICENSE  pyproject.toml  .gitattributes  .gitignore
-├── .github/workflows/quality.yml            CI: runs engramfold-preflight (never executed)
+├── .github/workflows/quality.yml            CI: runs engramfold-preflight on ubuntu-latest
 ├── registry/                                the index of the canonical record
 │   ├── populations.yaml                     phase + per-population empty-authorisation
 │   ├── datasets.yaml models.yaml experiments.yaml artifacts.yaml reports.yaml claims.yaml
@@ -361,12 +403,19 @@ Stated plainly, because a limitations section that omits the awkward ones is dec
    missing field and that the closed vocabularies match. The Python validators remain the
    authority, and the schemas do not encode every rule (e.g. conditional immutability per source
    type).
-4. **Continuous integration has never run.** `.github/workflows/quality.yml` installs the package
-   and runs `engramfold-preflight`; it will pass or fail for the first time on the first push. The
-   local gate is canonical, and CI is the same gate in a different place.
-5. **The health gate has been exercised on one platform.** Every recorded result is Windows with
-   Python 3.12.0 (pytest 9.1.1, ruff 0.16.1, mypy 1.20.2, git 2.52.0). The provenance mechanism
-   step requires `git` and fails loudly without it; nothing here has been run on Linux or macOS.
+4. **Continuous integration runs, and it passes.** `.github/workflows/quality.yml` had never
+   executed while this repository was local. Publishing it made CI run for the first time, and the
+   first run **failed** on the `types` step only:
+   `src/engramfold/documents.py:130: error: Library stubs not installed for "yaml" [import-untyped]`.
+   The cause was an undeclared dependency (C.2, defect 23), not a defect in the gate; once the
+   stubs were declared, the second run passed every step on `ubuntu-latest` with the same counts as
+   the Windows run (D.7). The local gate is still canonical, and CI is the same gate in a different
+   place — which is exactly why it found something the local gate could not.
+5. **The health gate has been exercised on two platforms, not on all of them.** Every recorded
+   result is Windows with Python 3.12.0 (pytest 9.1.1, ruff 0.16.1, mypy 1.20.2, git 2.52.0) and
+   `ubuntu-latest` with Python 3.12.14 in CI. The two agree on every count, including the 758 total.
+   macOS has not been exercised. The provenance mechanism step requires `git` and fails loudly
+   without it.
 6. **Hardware probes are exercised only in their skip path.** Environment capture records GPU,
    driver, RAM and CPU when `probe_hardware=True`; the deterministic tests capture with
    `probe_hardware=False`, so the probe *paths* are recorded rather than asserted. Two captures of
@@ -378,8 +427,12 @@ Stated plainly, because a limitations section that omits the awkward ones is dec
    are byte-identical when `--created-at` is fixed.
 8. **`registry/schemas/populations.schema.json` is not validated by the populations loader.** It
    parses and is cross-checked only in the sense above; the loader validates the document itself.
-9. **No remote and no push.** Every commit is local. Nothing in this record has been published,
-   and no external reader has yet read the schemas the repository ships for them.
+9. **It was local until the end of Phase 0, and is now published.** Every commit was made locally
+   first; the repository was then published as `arjhinety/EngramFold` (public) at the point of
+   closure, which is what made CI run and what made a platform-dependent defect visible (C.2,
+   defect 23; D.7). What remains unexercised is the *external reader* the schemas are shipped for:
+   no outside consumer has yet read `registry/schemas/*.json`, so their usefulness to one is
+   asserted rather than demonstrated.
 10. **Phase 0 covers infrastructure only.** `docs/METHODOLOGY.md` states the research design is NOT
     YET FROZEN, and this record contains no research decision. The next phase — hypothesis,
     literature, model family, the operational definition of an "expert function", baselines,
@@ -406,26 +459,30 @@ Evidence, each item checkable:
    `576 passed, 1 skipped`, 110 s, with the single skip reported rather than hidden.
 4. **The toolchain is clean**: `ruff check` all passed, `ruff format --check` 74 files formatted,
    `mypy --strict` no issues in 29 source files.
-5. **The twelve adversarial attacks were executed and each produced either identical deterministic
+5. **The same gate passes on a second platform, in CI.** Publishing the repository made
+   `.github/workflows/quality.yml` run for the first time: the first run failed on one step
+   (an undeclared stub dependency, C.2 defect 23), and after that was fixed the run passed every
+   step on `ubuntu-latest` with the same counts as the Windows run — 48 / 48 / 29 / 577 / 49 / 4 / 3,
+   total 758 (D.7). The gate describes the repository, not the machine.
+6. **The twelve adversarial attacks were executed and each produced either identical deterministic
    output or a loud, correct failure** (D.6) — including the three that matter most: a freeze whose
    artifact changed, a freeze pointing at the wrong manifest, and a validator entry point that
    printed no report.
-6. **The documentation now matches the code.** The five test modules the docs claimed exist; the
+7. **The documentation now matches the code.** The five test modules the docs claimed exist; the
    shipped population policy is pinned to the contract constant by a test; the JSON Schemas are
    cross-checked against the Python validators; every test module named in `tests/README.md` exists
-   and vice versa; and two claims that overstated what the code did were corrected rather than left
+   and vice versa; and the claims that overstated what the code did were corrected rather than left
    to be believed.
-7. **Everything found while closing was fixed forward, not hidden.** Seven defects and drifts (C.2)
+8. **Everything found while closing was fixed forward, not hidden.** Nine defects and drifts (C.2)
    were found by running things, each fixed with a test that fails if it returns; the
    commit-sequence deviation is disclosed in A.6; and no existing commit was rewritten.
-8. **The working note is out of the record.** `HANDOFF.md` is not in the repository: it was moved
+9. **The working note is out of the record.** `HANDOFF.md` is not in the repository: it was moved
    to `.scratch/HANDOFF.md`, which is gitignored, and no gate or registry entry refers to it.
 
-**What this decision does not say.** It does not say the substrate is finished. Section F stands
-unchanged: continuous integration has never run, the gate has been exercised on one platform only,
-the `synthetic` source type is schema-only, one measured non-determinism in definition-freeze bytes
-is documented rather than removed, and there is no dataset, model, experiment, artifact, claim or
-report.
+**What this decision does not say.** It does not say the substrate is finished. Section F lists what
+remains: macOS has not been exercised, the `synthetic` source type is schema-only, one measured
+non-determinism in definition-freeze bytes is documented rather than removed, the JSON Schemas have
+no external consumer yet, and there is no dataset, model, experiment, artifact, claim or report.
 
 And it says nothing about research. **No research question has been formed, no hypothesis written,
 no model chosen, no metric fixed, and no result exists.** Phase 0 closed the infrastructure. The

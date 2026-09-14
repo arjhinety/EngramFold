@@ -12,6 +12,14 @@ numerical correction, a methodological correction and an invalidated result, and
 those require a new artifact rather than an erratum — is
 [`docs/ERRATA_POLICY.md`](docs/ERRATA_POLICY.md).
 
+**What this ledger deliberately does not record.** Corrections made during Phase 0 to the
+*substrate's documentation* — a claim about what a counter was called, or how far a determinism
+guarantee reached, or the commit sequence — are not errata. Nothing had been frozen when they were
+made, so there was no recorded artifact for them to supersede, and the entries above each require a
+frozen artifact and its hash. They are recorded instead in
+[`docs/PHASE_0_CLOSURE.md`](docs/PHASE_0_CLOSURE.md) §C.2, with the command that found each one. An
+entry belongs here the moment a frozen artifact or a report needs correcting, and not before.
+
 No entries yet.
 
 ---
