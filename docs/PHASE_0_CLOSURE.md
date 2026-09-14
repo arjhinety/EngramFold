@@ -241,7 +241,7 @@ hidden, and never turned into a failure in either case.
 `engramfold-preflight` — the gate the handoff recorded as **never run** — printed:
 
 ```
-engramfold preflight  root=C:/Users/arro/Downloads/EngramFold  status=PRE-EXPERIMENT / INFRASTRUCTURE ONLY
+engramfold preflight  root=<repo>  status=PRE-EXPERIMENT / INFRASTRUCTURE ONLY
   [PASS   ] format                 executed=48    48 file(s) already formatted
   [PASS   ] lint                   executed=48    48 file(s) clean
   [PASS   ] types                  executed=29    29 source file(s) type-checked
@@ -254,8 +254,11 @@ total executed: 758
 overall: PASS
 ```
 
-Two notes carried from the implementation, because they are what make the row readable:
+Three notes carried from the implementation, because they are what make the row readable:
 
+* the `root=` value is elided as `<repo>`: it named the working directory the gate was invoked in,
+  and this record is published. Every count, status and message is verbatim; the path is the only
+  thing removed, and it is named here so the block is not mistaken for unedited output;
 * the `tests` step asserts a **non-zero collected count and a zero exit code**; the one skipped
   test is legitimate and visible in the suite output, which is why this record quotes both;
 * `freeze-mechanism` and `provenance-mechanism` are live adversarial self-tests. They pass here,
